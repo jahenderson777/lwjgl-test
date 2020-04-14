@@ -58,11 +58,10 @@
 (defn main-loop [{:keys [update-globals draw]}]
   (while (not (GLFW/glfwWindowShouldClose (:window @globals)))
     (update-globals)
-    (draw)
+    (draw @globals)
     (GLFW/glfwSwapBuffers (:window @globals))
     (GLFW/glfwPollEvents)
-    (GL11/glReadPixels 300 300 1 1 GL11/GL_RGBA, GL11/GL_UNSIGNED_BYTE
-                       pixels)))
+    ))
 
 (defn run [opts]
   (try

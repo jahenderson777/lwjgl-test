@@ -1,2 +1,6 @@
 /.cpcache/
 /.clj-kondo/.cache/
+/classes/
+/*.log
+.*
+!/.gitignore

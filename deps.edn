@@ -6,16 +6,14 @@
   org.lwjgl/lwjgl-opengl$natives-windows {:mvn/version "3.1.5"}
   org.lwjgl/lwjgl-glfw {:mvn/version "3.1.5"}
   org.lwjgl/lwjgl-glfw$natives-windows {:mvn/version "3.1.5"}
-  
-  
-  
   }
 
- :aliases {:javac {:extra-paths ["build"]
-                   :extra-deps  {badigeon/badigeon
-                                 {:git/url "https://github.com/EwenG/badigeon.git"
-                                  :sha "1edf7ae465db870ec0066f28226edb9b04873b70"
-                                  :tag "0.0.11"}}
-                   :main-opts   ["-m" "build"]}}
+ :aliases {:dev {:extra-paths ["dev"]
+                 :extra-deps {badigeon
+                              {:git/url "https://github.com/EwenG/badigeon.git"
+                               :sha "1edf7ae465db870ec0066f28226edb9b04873b70"
+                               :tag "0.0.11"}
+                              org.clojure/tools.namespace {:mvn/version "1.0.0"}}
+                 :main-opts   ["-m" "build"]}}
  
  :paths ["src" "classes"]}

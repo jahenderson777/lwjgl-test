@@ -1,6 +1,6 @@
 (ns lwjgl-test.logo
   (:require [lwjgl-test.init :as init]
-            [lwjgl-test.db :as db :refer [globals]])
+            [lwjgl-test.db :as db :refer [state]])
   (:import CosSineTable
            (org.lwjgl.opengl GL11)))
 
@@ -51,7 +51,7 @@
   (vreset! shape-y ny))
 
 (defn reset []
-  (let [{:keys [width height]} @globals]
+  (let [{:keys [width height]} @state]
     (GL11/glClear (bit-or GL11/GL_COLOR_BUFFER_BIT  GL11/GL_DEPTH_BUFFER_BIT))
     (GL11/glLoadIdentity)
     (vreset! x (/ width 2))
@@ -166,45 +166,3 @@
 (defmacro defproc [name args & cmds]
   `(defn ~name ~args
      (do ~@(chop-up-cmds cmds args))))
-
-#_(defn hit-table [radius]
-  (let [r (range (* -1 radius)
-                 (inc radius))]
-    (->> (for [x r
-               y r
-               :let [l (Math/sqrt (+ (Math/pow y 2) (Math/pow x 2)))]]
-           (when (and (<= l radius)
-                      (> l 1))
-             {:dx x
-              :dy y
-              :l l
-              :angle (if (zero? x)
-                       (if (zero? y)
-                         nil
-                         (if (pos? y)
-                           90
-                           (* -1 90)))
-                       (* 180 (/ (Math/atan2 y x) PI)))}))
-         (remove nil?))))
-
-(defn hit-table [radius]
-  (let [r (range (* -1 radius)
-                 (inc radius))]
-    (println r)
-    (for [x r
-          y r
-          :let [l (Math/sqrt (+ (Math/pow y 2) (Math/pow x 2)))
-                angle (if (zero? x)
-                        (if (zero? y)
-                          nil
-                          (if (pos? y)
-                            90
-                            -90))
-                        (* 180 (/ (Math/atan2 y x) PI)))]
-          :when (and angle (<= l radius))]
-      {:dx x
-       :dy y
-       :l l
-       :angle angle
-       :cx (* 1 (CosSineTable/cos angle))
-       :cy (* 1 (CosSineTable/sin angle))})))

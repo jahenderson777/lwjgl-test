@@ -5,12 +5,13 @@
                                               bk fd lt rt pd pu setxy
                                               ;pc fc
                                               ]]
-            [lwjgl-test.db :as db :refer [globals]])
-  (:import CosSineTable
+            [lwjgl-test.db :as db :refer [state]])
+  (:import CosSineTable HitTester
            (org.lwjgl BufferUtils)
            (org.lwjgl.opengl GL11)))
 
-(defn draw2 []
+
+#_(defn draw2 []
   (let [{:keys [width height angle]} @globals
         w2 (/ width 2.0)
         h2 (/ height 2.0)]
@@ -32,7 +33,6 @@
 (defproc heart []
   pd
   lt 30
-
   rpt 4 [fd 1 rt 10]
   rpt 10 [fd 0.52 rt 20]
   lt 160
@@ -45,37 +45,11 @@
 (defproc slope []
   lt -70 bk 8 pd fd 16 rt 120 fd 16 pu 40)
 
-(def state (atom {:bg nil
-                  :player-x -300
-                  :player-y 220
-                  :dir 259
-                  :hit-table (logo/hit-table 20)
-                  :speed 2}))
-
-(defn draw-player []
-  (let [{:keys [player-x player-y]} @state]
-    
-    (setxy player-x player-y)
-    (pd)
-    (dotimes [_ 10]
-      (fd 1)
-      (bk 1)
-      (rt 36))
-    (pu)))
-
-(defn update-state []
-  (swap! state (fn [{:keys [speed dir] :as state}]
-                 (-> state
-                     (update :player-x + (* speed (CosSineTable/cos dir)))
-                     (update :player-y + (* speed (CosSineTable/sin dir)))))))
-
-
-(def pixels (BufferUtils/createByteBuffer (* 41 41 4)))
-
-(defn get-pixel [x y]
-  (let [idx (int (+ (* 4 x) (* y (* 4 40))))]
-    ;(println "idx " idx)
-    (.get pixels idx)))
+(defproc draw-player [player-x player-y]
+  setxy player-x player-y
+  pd
+  rpt 50 [fd 1 bk 1 rt 13]
+  pu)
 
 (defproc border []
   setxy -350 250
@@ -86,77 +60,47 @@
   setscale 20
   pu)
 
-(defn draw [{:keys [angle width height]}]
+(def hit-tester (HitTester. 20))
+
+(defn hit-test [{:keys [width height player-x player-y bg dir]}]
+  (GL11/glReadPixels (int (+ (/ width 2) player-x -20))
+                     (int (+ (/ height 2) player-y -20))
+                     40 40 GL11/GL_RGBA, GL11/GL_UNSIGNED_BYTE
+                     (.-pixels hit-tester))
+  (when-not bg
+    (.setBackground hit-tester)
+    (swap! state assoc :bg
+           (.getPixel hit-tester 20 20)))
+
+  (let [new-dir (.findHit hit-tester dir)]
+    
+    (when new-dir
+      (swap! state assoc :dir new-dir))))
+
+
+(defn draw [{:keys [angle player-x player-y] :as state}]
   (reset)
-  ;(lt angle)
-  (setxy 0 0)
-  (dotimes [_ 2]
-      (lt 7.3)
-      (heart))
-  (lt 180)
-  (setxy 0 0)
   (border)
   (setxy 0 0)
-  (setdir 0)
+  (run pd lt 45 fd 10 bk 20 rt 45 fd 10 pu )
+  (setdir angle)
   (heart)
-  (update-state)
-  (let [{:keys [player-x player-y]} @state]
-    (GL11/glReadPixels (int (+ (/ width 2) player-x -20)) 
-                       (int (+ (/ height 2) player-y -20)) 
-                       40 40 GL11/GL_RGBA, GL11/GL_UNSIGNED_BYTE
-                       pixels))
-  #_(let [p (get-pixel 20 20)]
-      (when (not (zero? p))
-        (println p)))
-  (let [{:keys [player-x player-y bg hit-table dir]} @state]
-    (when-not bg
-      (swap! state assoc :bg
-             (get-pixel 20 20)))
-    
-    (let [bg (:bg @state)
-          {:keys [sum-cx sum-cy cnt]}
-          (reduce (fn [m {:keys [dx dy cx cy]}]
-                    (let [
-                          test-pixel (get-pixel 
-                                      (+ 20 dx)
-                                      (+ 20 dy))
-                          ]
-                      (if (and test-pixel (not= test-pixel bg))
-                        (do ;(println dx dy cx cy)
-                          (-> m
-                              (update :sum-cx + cx)
-                              (update :sum-cy + cy)
-                              (update :cnt inc)))
-                        m)))
-                  {:sum-cx 0
-                   :sum-cy 0
-                   :cnt 0}
-                  hit-table)
-          
-          angle (* 180 (/ (Math/atan2 sum-cy sum-cx) logo/PI))
-          new-dir (mod (- (* 2 (+ angle 90))
-                          dir) 360)]
-      (draw-player)
-      (when (> cnt 4)
-        (println angle new-dir)
-        (swap! state assoc :dir new-dir)
-        (update-state)
-        )))
-  )
+  (hit-test state)
+  (draw-player player-x player-y))
 
-
-(defn update-globals []
-  (let [{:keys [width height angle last-time]} @globals
-        cur-time (System/currentTimeMillis)
+(defn update-state [{:keys [speed dir angle last-time] :as state}]
+  (let [cur-time (System/currentTimeMillis)
         delta-time (- cur-time last-time)
         next-angle (+ (* delta-time 0.05) angle)
         next-angle (if (>= next-angle 360.0)
                      (- next-angle 360.0)
                      next-angle)]
-    (swap! globals assoc
-           :angle next-angle
-           :last-time cur-time)))
+    (-> state
+        (assoc :angle next-angle
+               :last-time cur-time)
+        (update :player-x + (* speed (CosSineTable/cos dir)))
+        (update :player-y + (* speed (CosSineTable/sin dir))))))
 
 (defn main []
-  (init/run {:draw #'draw
-             :update-globals #'update-globals}))
+  (init/run {:update-state #'update-state
+             :draw #'draw}))

@@ -54,6 +54,7 @@
   (let [{:keys [width height]} @state]
     (GL11/glClear (bit-or GL11/GL_COLOR_BUFFER_BIT  GL11/GL_DEPTH_BUFFER_BIT))
     (GL11/glLoadIdentity)
+    (GL11/glColor3f 1.0 1.0 1.0)
     (vreset! x (/ width 2))
     (vreset! y (/ height 2))
     (GL11/glTranslatef @x @y 0)

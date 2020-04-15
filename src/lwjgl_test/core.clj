@@ -46,6 +46,7 @@
   lt -70 bk 8 pd fd 16 rt 120 fd 16 pu 40)
 
 (defproc draw-player [player-x player-y]
+  GL11/glColor3f 0.0 1.0 0.0
   setxy player-x player-y
   pd
   rpt 50 [fd 1 bk 1 rt 13]
@@ -82,7 +83,7 @@
   (reset)
   (border)
   (setxy 0 0)
-  (run pd lt 45 fd 10 bk 20 rt 45 fd 10 pu )
+  (run pd lt 45 fd 10 bk 10 rt 90 fd 10 bk 20 fd 10 lt 90 bk 10 fd 10 pu)
   (setdir angle)
   (heart)
   (hit-test state)

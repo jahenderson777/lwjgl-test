@@ -2,11 +2,11 @@
   (:require [lwjgl-test.init :as init]
             [lwjgl-test.logo :as logo :refer [setdir setscale setsat setps setbri setalpha defproc rpt run reset
                                               ;t 
-                                              bk fd lt rt pd pu setxy
+                                              bk fd lt rt pd pu setxy pdtri
                                               ;pc fc
                                               ]]
             [lwjgl-test.db :as db :refer [state]])
-  (:import CosSineTable HitTester
+  (:import CosSineTable HitTester Util
            (org.lwjgl BufferUtils)
            (org.lwjgl.opengl GL11)))
 
@@ -30,15 +30,16 @@
       (GL11/glVertex2i -50 -86.6)
       (GL11/glEnd))))
 
-(defproc heart []
-  pd
+(defproc heart [size]
+  GL11/glColor3f 0.9 0.6 0.6
+  pdtri
   lt 30
-  rpt 4 [fd 1 rt 10]
-  rpt 10 [fd 0.52 rt 20]
+  rpt 4 [fd (* size 1) rt 10]
+  rpt 10 [fd (* size 0.52) rt 20]
   lt 160
-  rpt 10 [fd 0.52 rt 20]
+  rpt 10 [fd (* size 0.52) rt 20]
   lt 10
-  rpt 4 [fd 1 rt 10]
+  rpt 4 [fd (* size 1) rt 10]
   rt 50
   pu)
 
@@ -57,6 +58,7 @@
   setdir 0
   pd
   setscale 1
+  
   fd 700 rt 90 fd 500 rt 90 fd 700 rt 90 fd 500
   setscale 20
   pu)
@@ -66,7 +68,7 @@
 (defn hit-test [{:keys [width height player-x player-y bg dir]}]
   (GL11/glReadPixels (int (+ (/ width 2) player-x -20))
                      (int (+ (/ height 2) player-y -20))
-                     40 40 GL11/GL_RGBA, GL11/GL_UNSIGNED_BYTE
+                     40 40 GL11/GL_RGB, GL11/GL_UNSIGNED_BYTE
                      (.-pixels hit-tester))
   (when-not bg
     (.setBackground hit-tester)
@@ -83,9 +85,9 @@
   (reset)
   (border)
   (setxy 0 0)
-  (run pd lt 45 fd 10 bk 10 rt 90 fd 10 bk 20 fd 10 lt 90 bk 10 fd 10 pu)
-  (setdir angle)
-  (heart)
+  (run GL11/glColor3f 0.0 0.5 0.5 pd lt 45 fd 10 bk 10 rt 90 fd 10 bk 20 fd 10 lt 90 bk 10 fd 10 pu)
+  ;(setdir angle)
+  (heart (/ angle  180))
   (hit-test state)
   (draw-player player-x player-y))
 

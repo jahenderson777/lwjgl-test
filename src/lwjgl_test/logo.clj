@@ -128,6 +128,19 @@
     (GL11/glVertex2i @shape-x @shape-y)
     (vreset! pen-down true)))
 
+(defn pdtri [& [pen-col]]
+  (when-not @pen-down
+    (GL11/glBegin GL11/GL_TRIANGLE_FAN)
+    #_(if (pos? @pen-size)
+        (q/stroke (if pen-col
+                    pen-col
+                    @hue) 100 80)
+        (q/no-stroke))
+    (vreset! shape-x @x)
+    (vreset! shape-y @y)
+    (GL11/glVertex2i @shape-x @shape-y)
+    (vreset! pen-down true)))
+
 #_(defn t []
   (/ (q/millis) 1000.0))
 

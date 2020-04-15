@@ -64,7 +64,12 @@ public class HitTester {
     }
 
     public byte getPixel(int x, int y) {
-        return pixels.get(4*(x + radius*2*y));
+        return pixels.get(3*(x + radius*2*y));
+    }
+
+    public byte[] getPixel2(int x, int y) {
+        int idx = 4*(x + radius*2*y);
+        return new byte[]{pixels.get(idx), pixels.get(idx+1), pixels.get(idx+2), pixels.get(idx+3)};
     }
 
     public double angleDiff(double a, double b) {
